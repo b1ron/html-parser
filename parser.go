@@ -1,11 +1,8 @@
 package parser
 
 import (
-	"fmt"
 	"io"
-	"strings"
 	"text/scanner"
-	"unicode"
 )
 
 type state int
@@ -161,30 +158,29 @@ func (p *parser) parse() {
 		case DOCTYPE:
 			switch token {
 			case ' ':
-				fmt.Println("in DOCTYPE")
-				p.state = beforeDOCTYPEName
+				p.state = afterDOCTYPEName
 			case '>':
 				// reconsume in the before DOCTYPE name state.
 			}
 		case beforeDOCTYPEName:
-			for strings.ContainsRune(" \n\t", token) {
-				// ignore the character
-				token = p.lex.Scan()
-			}
-			switch {
-			case unicode.IsUpper(token):
-				// create a new DOCTYPE token, set its name to the lowercase version of the current input character
-				p.state = DOCTYPEName
-			default: // to handle anything else
-				// create a new DOCTYPE token. set the token's name to the current input character. switch to the DOCTYPE name state.
-				p.tokBuf.name = append(p.tokBuf.name, byte(token))
-				p.state = DOCTYPEName
+			// consume the next input character
+			// create a new DOCTYPE token. set the token's name to the current input character. switch to the DOCTYPE name state.
+			p.tokBuf.name = append(p.tokBuf.name, byte(token))
+			p.state = DOCTYPEName
+		case afterDOCTYPEName:
+			p.state = bogusDOCTYPE
+		case bogusDOCTYPE:
+			switch token {
+			case '>':
+				// switch to the data state. emit the DOCTYPE token.
+				p.state = data
 			}
 		case DOCTYPEName:
 			switch token {
 			case ' ':
 				p.state = afterDOCTYPEName
 			case '>':
+				// emit the current DOCTYPE token. switch to the data state.
 				p.state = data
 			default:
 				p.tokBuf.name = append(p.tokBuf.name, byte(token))
@@ -192,3 +188,9 @@ func (p *parser) parse() {
 		}
 	}
 }
+
+// var simple = `
+// <!DOCTYPE html>
+//   <html>
+//   </html>
+// `
