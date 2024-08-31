@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"io"
 	"strings"
 	"text/scanner"
@@ -89,12 +90,17 @@ const (
 	numericCharacterReferenceEnd
 )
 
+// holds a DOCTYPE token
+type tokBuf struct {
+	name []byte
+}
+
 type lexer struct {
 	scanner.Scanner
 }
 
 type parser struct {
-	b           []byte // holds the current token in certain states
+	tokBuf      tokBuf
 	lex         *lexer
 	state       state
 	returnState *state
@@ -102,10 +108,12 @@ type parser struct {
 
 func NewParser(r io.Reader) *parser {
 	p := parser{}
-	p.b = make([]byte, 0)
 	p.lex = &lexer{}
 	p.lex.Init(r)
+	p.lex.Whitespace ^= 1 << ' '
+
 	p.state = data // inital state
+	p.tokBuf.name = make([]byte, 0)
 	return &p
 }
 
@@ -153,6 +161,7 @@ func (p *parser) parse() {
 		case DOCTYPE:
 			switch token {
 			case ' ':
+				fmt.Println("in DOCTYPE")
 				p.state = beforeDOCTYPEName
 			case '>':
 				// reconsume in the before DOCTYPE name state.
@@ -168,7 +177,7 @@ func (p *parser) parse() {
 				p.state = DOCTYPEName
 			default: // to handle anything else
 				// create a new DOCTYPE token. set the token's name to the current input character. switch to the DOCTYPE name state.
-				p.b = append(p.b, byte(token))
+				p.tokBuf.name = append(p.tokBuf.name, byte(token))
 				p.state = DOCTYPEName
 			}
 		case DOCTYPEName:
@@ -178,7 +187,7 @@ func (p *parser) parse() {
 			case '>':
 				p.state = data
 			default:
-				p.b = append(p.b, byte(token))
+				p.tokBuf.name = append(p.tokBuf.name, byte(token))
 			}
 		}
 	}
