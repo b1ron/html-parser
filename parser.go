@@ -94,6 +94,7 @@ type lexer struct {
 }
 
 type parser struct {
+	b           []byte // holds the current token in certain states
 	lex         *lexer
 	state       state
 	returnState *state
@@ -101,6 +102,7 @@ type parser struct {
 
 func NewParser(r io.Reader) *parser {
 	p := parser{}
+	p.b = make([]byte, 0)
 	p.lex = &lexer{}
 	p.lex.Init(r)
 	p.state = data // inital state
@@ -158,11 +160,25 @@ func (p *parser) parse() {
 		case beforeDOCTYPEName:
 			for strings.ContainsRune(" \n\t", token) {
 				// ignore the character
-				p.lex.Scan()
+				token = p.lex.Scan()
 			}
-			if unicode.IsUpper(token) {
+			switch {
+			case unicode.IsUpper(token):
 				// create a new DOCTYPE token, set its name to the lowercase version of the current input character
 				p.state = DOCTYPEName
+			default: // to handle anything else
+				// create a new DOCTYPE token. set the token's name to the current input character. switch to the DOCTYPE name state.
+				p.b = append(p.b, byte(token))
+				p.state = DOCTYPEName
+			}
+		case DOCTYPEName:
+			switch token {
+			case ' ':
+				p.state = afterDOCTYPEName
+			case '>':
+				p.state = data
+			default:
+				p.b = append(p.b, byte(token))
 			}
 		}
 	}
