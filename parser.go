@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"io"
 	"text/scanner"
+	"unicode"
 )
 
 type state int
@@ -110,22 +111,23 @@ func newParser(r io.Reader) *parser {
 	return &p
 }
 
-// holds a DOCTYPE token
-type docTok struct {
+// holds a DOCTYPE, start tag or end tag token
+type tokBuf struct {
 	name []rune
 }
 
-// creates a new DOCTYPE token. set the token's name to the current input character.
 func (p *parser) create(token rune) {
-	tok := docTok{}
-	tok.name = append(tok.name, token)
-	p.currentToken.PushBack(tok)
+	switch p.state {
+	case DOCTYPE:
+		p.currentToken.PushBack(tokBuf{name: []rune{token}})
+	case tagOpen:
+		p.currentToken.PushBack(tokBuf{name: []rune{'0'}})
+	}
 }
 
-// appends the current input character to the current DOCTYPE token's name.
 func (p *parser) append(token rune) {
 	e := p.currentToken.Back()
-	curr := p.currentToken.Remove(e).(docTok)
+	curr := p.currentToken.Remove(e).(tokBuf)
 	curr.name = append(curr.name, token)
 	p.currentToken.PushBack(curr)
 }
@@ -172,6 +174,24 @@ func (p *parser) parse() {
 			case '/':
 				p.state = endTagOpen
 			}
+			// create a new start tag token, set its tag name to the empty string. reconsume in the tag name state
+			if unicode.IsLetter(token) {
+				p.create(token)
+				p.state = tagName
+			}
+		case tagName:
+			switch token {
+			case ' ':
+				p.state = beforeAttributeName
+			case '/':
+				// TODO switch to the self-closing start tag state
+			case '>':
+				// TODO emit the current tag token
+				p.state = data
+			default:
+				// anything else append the current input character to the current tag token's tag name
+				p.append(token)
+			}
 		case markupDeclarationOpen:
 			// match for the word "DOCTYPE"
 			switch p.lex.TokenText() {
@@ -210,7 +230,7 @@ func (p *parser) parse() {
 				// emit the current DOCTYPE token. switch to the data state
 				p.state = data
 			default:
-				// anything else append the current input character to the current DOCTYPE token's name
+				// anything else append the current input character to the current tag token's tag name
 				p.append(token)
 			}
 		}
