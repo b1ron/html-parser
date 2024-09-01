@@ -164,7 +164,9 @@ func (p *parser) parse() {
 			}
 		case beforeDOCTYPEName:
 			// create a new DOCTYPE token. set the token's name to the current input character. switch to the DOCTYPE name state
-			p.currentToken.PushBack(tokBuf{name: []rune{token}})
+			newToken := tokBuf{}
+			newToken.name = append(newToken.name, token)
+			p.currentToken.PushBack(newToken)
 			p.state = DOCTYPEName
 		case afterDOCTYPEName:
 			p.state = bogusDOCTYPE
