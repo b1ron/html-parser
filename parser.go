@@ -88,11 +88,6 @@ const (
 	numericCharacterReferenceEnd
 )
 
-// holds a DOCTYPE token
-type tokBuf struct {
-	name []rune
-}
-
 type lexer struct {
 	scanner.Scanner
 }
@@ -113,6 +108,34 @@ func newParser(r io.Reader) *parser {
 	p.state = data // inital state
 	p.currentToken = *list.New()
 	return &p
+}
+
+// holds a DOCTYPE token
+type docTok struct {
+	name []rune
+}
+
+// creates a new DOCTYPE token. set the token's name to the current input character.
+func (p *parser) create(token rune) {
+	tok := docTok{}
+	tok.name = append(tok.name, token)
+	p.currentToken.PushBack(tok)
+}
+
+// appends the current input character to the current DOCTYPE token's name.
+func (p *parser) apppend(token rune) {
+	e := p.currentToken.Back()
+	curr := p.currentToken.Remove(e).(docTok)
+	curr.name = append(curr.name, token)
+	p.currentToken.PushBack(curr)
+}
+
+func (p *parser) emit() {
+	// TODO emit the current DOCTYPE token
+}
+
+func (p *parser) reconsume() {
+	// TODO reconsume the current input character in the DOCTYPE name state
 }
 
 // TODO figure out how to handle the return state in the parser
@@ -164,9 +187,7 @@ func (p *parser) parse() {
 			}
 		case beforeDOCTYPEName:
 			// create a new DOCTYPE token. set the token's name to the current input character. switch to the DOCTYPE name state
-			newToken := tokBuf{}
-			newToken.name = append(newToken.name, token)
-			p.currentToken.PushBack(newToken)
+			p.create(token)
 			p.state = DOCTYPEName
 		case afterDOCTYPEName:
 			p.state = bogusDOCTYPE
@@ -190,9 +211,7 @@ func (p *parser) parse() {
 				p.state = data
 			default:
 				// anything else append the current input character to the current DOCTYPE token's name
-				curr := p.currentToken.Remove(p.currentToken.Back()).(tokBuf)
-				curr.name = append(curr.name, token)
-				p.currentToken.PushBack(curr)
+				p.apppend(token)
 			}
 		}
 	}
