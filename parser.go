@@ -117,12 +117,7 @@ type tokBuf struct {
 }
 
 func (p *parser) create(token rune) {
-	switch p.state {
-	case DOCTYPE:
-		p.currentToken.PushBack(tokBuf{name: []rune{token}})
-	case tagOpen:
-		p.currentToken.PushBack(tokBuf{name: []rune{'0'}})
-	}
+	p.currentToken.PushBack(tokBuf{name: []rune{token}})
 }
 
 func (p *parser) append(token rune) {
@@ -176,7 +171,7 @@ func (p *parser) parse() {
 			}
 			// create a new start tag token, set its tag name to the empty string. reconsume in the tag name state
 			if unicode.IsLetter(token) {
-				p.create(token)
+				p.create('0')
 				p.state = tagName
 			}
 		case tagName:
