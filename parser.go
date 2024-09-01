@@ -123,7 +123,7 @@ func (p *parser) create(token rune) {
 }
 
 // appends the current input character to the current DOCTYPE token's name.
-func (p *parser) apppend(token rune) {
+func (p *parser) append(token rune) {
 	e := p.currentToken.Back()
 	curr := p.currentToken.Remove(e).(docTok)
 	curr.name = append(curr.name, token)
@@ -211,7 +211,7 @@ func (p *parser) parse() {
 				p.state = data
 			default:
 				// anything else append the current input character to the current DOCTYPE token's name
-				p.apppend(token)
+				p.append(token)
 			}
 		}
 	}
