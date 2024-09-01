@@ -188,9 +188,8 @@ func (p *parser) parse() {
 				p.state = data
 			default:
 				// anything else append the current input character to the current DOCTYPE token's name
-				curr := p.currentToken.Back().Value.(tokBuf)
+				curr := p.currentToken.Remove(p.currentToken.Back()).(tokBuf)
 				curr.name = append(curr.name, token)
-				p.currentToken.Remove(p.currentToken.Back())
 				p.currentToken.PushBack(curr)
 			}
 		}
