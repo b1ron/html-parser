@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"container/list"
 	"io"
 	"text/scanner"
 )
@@ -89,7 +90,7 @@ const (
 
 // holds a DOCTYPE token
 type tokBuf struct {
-	name []byte
+	name []rune
 }
 
 type lexer struct {
@@ -97,23 +98,24 @@ type lexer struct {
 }
 
 type parser struct {
-	tokBuf      tokBuf
-	lex         *lexer
-	state       state
-	returnState *state
+	currentToken list.List
+	lex          *lexer
+	state        state
+	returnState  *state
 }
 
-func NewParser(r io.Reader) *parser {
+func newParser(r io.Reader) *parser {
 	p := parser{}
 	p.lex = &lexer{}
 	p.lex.Init(r)
 	p.lex.Whitespace ^= 1 << ' '
 
 	p.state = data // inital state
-	p.tokBuf.name = make([]byte, 0)
+	p.currentToken = *list.New()
 	return &p
 }
 
+// TODO figure out how to handle the return state in the parser
 // Certain states also use a temporary buffer to track progress, and the character
 // reference state uses a return state to return to the state it was invoked from.
 func (p *parser) setReturnState(s state) {
@@ -135,8 +137,6 @@ func (p *parser) parse() {
 				p.state = characterReference
 			case '<':
 				p.state = tagOpen
-			case '0':
-				// TODO emit the current input character as a character token
 			case scanner.EOF:
 				// TODO emit an end-of-file token
 			default:
@@ -160,30 +160,38 @@ func (p *parser) parse() {
 			case ' ':
 				p.state = afterDOCTYPEName
 			case '>':
-				// reconsume in the before DOCTYPE name state.
+				// reconsume in the before DOCTYPE name state
 			}
 		case beforeDOCTYPEName:
-			// consume the next input character
-			// create a new DOCTYPE token. set the token's name to the current input character. switch to the DOCTYPE name state.
-			p.tokBuf.name = append(p.tokBuf.name, byte(token))
+			// create a new DOCTYPE token. set the token's name to the current input character. switch to the DOCTYPE name state
+			p.currentToken.PushBack(tokBuf{name: []rune{token}})
 			p.state = DOCTYPEName
 		case afterDOCTYPEName:
 			p.state = bogusDOCTYPE
 		case bogusDOCTYPE:
 			switch token {
 			case '>':
-				// switch to the data state. emit the DOCTYPE token.
+				// switch to the data state. emit the DOCTYPE token
 				p.state = data
+			case scanner.EOF:
+				// TODO emit an end-of-file token
+			default:
+				// anything else ignore the character
+				p.lex.Scan()
 			}
 		case DOCTYPEName:
 			switch token {
 			case ' ':
 				p.state = afterDOCTYPEName
 			case '>':
-				// emit the current DOCTYPE token. switch to the data state.
+				// emit the current DOCTYPE token. switch to the data state
 				p.state = data
 			default:
-				p.tokBuf.name = append(p.tokBuf.name, byte(token))
+				// anything else append the current input character to the current DOCTYPE token's name
+				curr := p.currentToken.Back().Value.(tokBuf)
+				curr.name = append(curr.name, token)
+				p.currentToken.Remove(p.currentToken.Back())
+				p.currentToken.PushBack(curr)
 			}
 		}
 	}

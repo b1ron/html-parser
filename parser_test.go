@@ -12,6 +12,6 @@ var simple = `
 `
 
 func TestParser(t *testing.T) {
-	p := NewParser(strings.NewReader(simple))
+	p := newParser(strings.NewReader(simple))
 	p.parse()
 }
