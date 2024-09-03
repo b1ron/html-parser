@@ -108,7 +108,7 @@ func newParser(r io.Reader) *parser {
 	p.lex.Init(r)
 	p.lex.Whitespace ^= 1 << ' '
 
-	p.state = data // inital state
+	p.state = data // initial state
 	p.currentToken = *list.New()
 	return &p
 }
@@ -235,6 +235,7 @@ func (p *parser) parse() {
 				p.append(token)
 			}
 		}
+		// save the current token for the next iteration
 		previousToken = token
 	}
 }
