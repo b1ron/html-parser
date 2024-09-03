@@ -187,6 +187,7 @@ func (p *parser) parse() {
 				if p.reconsume {
 					p.append(p.previousToken)
 					p.reconsume = false
+					continue
 				}
 				p.append(token)
 			}
