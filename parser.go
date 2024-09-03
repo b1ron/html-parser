@@ -94,10 +94,12 @@ type lexer struct {
 }
 
 type parser struct {
-	currentToken list.List
-	lex          *lexer
-	state        state
-	returnState  *state
+	currentToken  list.List
+	previousToken rune
+	lex           *lexer
+	state         state
+	returnState   *state
+	reconsume     bool
 }
 
 func newParser(r io.Reader) *parser {
@@ -129,10 +131,6 @@ func (p *parser) append(token rune) {
 
 func (p *parser) emit() {
 	// TODO emit the current DOCTYPE token
-}
-
-func (p *parser) reconsume() {
-	// TODO reconsume the current input character in the DOCTYPE name state
 }
 
 // TODO figure out how to handle the return state in the parser
@@ -172,6 +170,7 @@ func (p *parser) parse() {
 			// create a new start tag token, set its tag name to the empty string. reconsume in the tag name state
 			if unicode.IsLetter(token) {
 				p.create('0')
+				p.reconsume = true
 				p.state = tagName
 			}
 		case tagName:
@@ -185,6 +184,10 @@ func (p *parser) parse() {
 				p.state = data
 			default:
 				// anything else append the current input character to the current tag token's tag name
+				if p.reconsume {
+					p.append(p.previousToken)
+					p.reconsume = false
+				}
 				p.append(token)
 			}
 		case markupDeclarationOpen:
@@ -229,6 +232,7 @@ func (p *parser) parse() {
 				p.append(token)
 			}
 		}
+		p.previousToken = token
 	}
 }
 
