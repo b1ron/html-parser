@@ -140,6 +140,8 @@ func (p *parser) setReturnState(s state) {
 	p.returnState = &s
 }
 
+var previousToken rune
+
 func (p *parser) parse() {
 	for {
 		token := p.lex.Scan()
@@ -185,7 +187,7 @@ func (p *parser) parse() {
 			default:
 				// anything else append the current input character to the current tag token's tag name
 				if p.reconsume {
-					p.append(p.previousToken)
+					p.append(previousToken)
 					p.reconsume = false
 					continue
 				}
@@ -233,7 +235,7 @@ func (p *parser) parse() {
 				p.append(token)
 			}
 		}
-		p.previousToken = token
+		previousToken = token
 	}
 }
 
