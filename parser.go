@@ -119,6 +119,10 @@ type tokBuf struct {
 }
 
 func (p *parser) create(token rune) {
+	if token == '0' {
+		p.currentToken.PushBack(tokBuf{name: []rune{}})
+		return
+	}
 	p.currentToken.PushBack(tokBuf{name: []rune{token}})
 }
 
