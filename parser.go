@@ -94,12 +94,11 @@ type lexer struct {
 }
 
 type parser struct {
-	currentToken  list.List
-	previousToken rune
-	lex           *lexer
-	state         state
-	returnState   *state
-	reconsume     bool
+	tokList     list.List
+	lex         *lexer
+	state       state
+	returnState *state
+	reconsume   bool
 }
 
 func newParser(r io.Reader) *parser {
@@ -109,7 +108,7 @@ func newParser(r io.Reader) *parser {
 	p.lex.Whitespace ^= 1 << ' '
 
 	p.state = data // initial state
-	p.currentToken = *list.New()
+	p.tokList = *list.New()
 	return &p
 }
 
@@ -119,18 +118,18 @@ type tokBuf struct {
 }
 
 func (p *parser) create(token rune) {
-	if token == '0' {
-		p.currentToken.PushBack(tokBuf{name: []rune{}})
-		return
+	newTok := tokBuf{name: []rune{}}
+	if token > '0' {
+		newTok.name = append(newTok.name, token)
 	}
-	p.currentToken.PushBack(tokBuf{name: []rune{token}})
+	p.tokList.PushBack(newTok)
 }
 
 func (p *parser) append(token rune) {
-	e := p.currentToken.Back()
-	curr := p.currentToken.Remove(e).(tokBuf)
-	curr.name = append(curr.name, token)
-	p.currentToken.PushBack(curr)
+	e := p.tokList.Back()
+	tok := p.tokList.Remove(e).(tokBuf)
+	tok.name = append(tok.name, token)
+	p.tokList.PushBack(tok)
 }
 
 func (p *parser) emit() {
