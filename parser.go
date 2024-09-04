@@ -118,11 +118,11 @@ type tokBuf struct {
 }
 
 func (p *parser) create(token rune) {
-	newTok := tokBuf{name: []rune{}}
+	tok := tokBuf{}
 	if token > '0' {
-		newTok.name = append(newTok.name, token)
+		tok.name = append(tok.name, token)
 	}
-	p.tokList.PushBack(newTok)
+	p.tokList.PushBack(tok)
 }
 
 func (p *parser) append(token rune) {
