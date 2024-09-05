@@ -89,16 +89,65 @@ const (
 	numericCharacterReferenceEnd
 )
 
+type mode int
+
+// https://html.spec.whatwg.org/#insertion-mode
+const (
+	initial mode = iota
+	beforeHTML
+	beforeHead
+	inHead
+	inHeadNoscript
+	afterHead
+	inBody
+	text
+	inTable
+	inTableText
+	inCaption
+	inColumnGroup
+	inTableBody
+	inRow
+	inCell
+	inSelect
+	inSelectInTable
+	inTemplate
+	afterBody
+	inFrameset
+	afterFrameset
+	afterAfterBody
+	afterAfterFrameset
+)
+
+// https://html.spec.whatwg.org/#stack-of-open-elements
+type stack []elem
+
+type elem struct {
+	typ int
+	val any
+}
+
 type lexer struct {
 	scanner.Scanner
 }
 
 type parser struct {
-	tokList     list.List
-	lex         *lexer
-	state       state
-	returnState *state
-	reconsume   bool
+	tokList       list.List
+	s             *stack
+	lex           *lexer
+	state         state
+	returnState   *state
+	reconsume     bool
+	insertionMode mode
+}
+
+func (s stack) push(e elem) {
+	s = append(s, e)
+}
+
+func (s stack) pop() elem {
+	e := s[len(s)-1]
+	s = s[:len(s)-1]
+	return e
 }
 
 func newParser(r io.Reader) *parser {
@@ -106,9 +155,10 @@ func newParser(r io.Reader) *parser {
 	p.lex = &lexer{}
 	p.lex.Init(r)
 	p.lex.Whitespace ^= 1 << ' '
-
 	p.state = data // initial state
+	p.insertionMode = initial
 	p.tokList = *list.New()
+	p.s = &stack{}
 	return &p
 }
 
@@ -144,7 +194,7 @@ func (p *parser) setReturnState(s state) {
 }
 
 func (p *parser) parse() {
-	var currentToken rune
+	var currToken rune
 	for {
 		token := p.lex.Scan()
 		if token == scanner.EOF {
@@ -189,7 +239,7 @@ func (p *parser) parse() {
 			default:
 				// anything else append the current input character to the current tag token's tag name
 				if p.reconsume {
-					p.append(currentToken)
+					p.append(currToken)
 					p.reconsume = false
 				}
 				p.append(token)
@@ -237,7 +287,7 @@ func (p *parser) parse() {
 			}
 		}
 		// save the current token for the next iteration
-		currentToken = token
+		currToken = token
 	}
 }
 
