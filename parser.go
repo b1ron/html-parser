@@ -122,7 +122,6 @@ const (
 type stack []elem
 
 type elem struct {
-	typ int
 	val any
 }
 
@@ -182,12 +181,8 @@ func (p *parser) append(token rune) {
 	p.tokList.PushBack(tok)
 }
 
-func (p *parser) emit() {
-	// TODO emit the current DOCTYPE token
-}
-
 // TODO figure out how to handle the return state in the parser
-// Certain states also use a temporary buffer to track progress, and the character
+// certain states also use a temporary buffer to track progress, and the character
 // reference state uses a return state to return to the state it was invoked from.
 func (p *parser) setReturnState(s state) {
 	p.returnState = &s
@@ -262,7 +257,16 @@ func (p *parser) parse() {
 			p.create(token)
 			p.state = DOCTYPEName
 		case afterDOCTYPEName:
-			p.state = bogusDOCTYPE
+			switch token {
+			case ' ':
+				// ignore the character
+			case scanner.EOF:
+				// TODO emit an end-of-file token
+			default:
+				// anything else switch to the bogus DOCTYPE state and reconsume
+				p.reconsume = true
+				p.state = bogusDOCTYPE
+			}
 		case bogusDOCTYPE:
 			switch token {
 			case '>':
