@@ -2,10 +2,14 @@ package parser
 
 import (
 	"container/list"
+	"fmt"
 	"io"
 	"text/scanner"
 	"unicode"
 )
+
+// WIP
+// TODO write a custom parser...
 
 type state int
 
@@ -131,6 +135,7 @@ type lexer struct {
 
 type parser struct {
 	tokList       list.List
+	b             []rune
 	s             *stack
 	lex           *lexer
 	state         state
@@ -157,6 +162,7 @@ func newParser(r io.Reader) *parser {
 	p.state = data // initial state
 	p.insertionMode = initial
 	p.tokList = *list.New()
+	p.b = []rune{}
 	p.s = &stack{}
 	return &p
 }
@@ -181,6 +187,11 @@ func (p *parser) append(token rune) {
 	p.tokList.PushBack(tok)
 }
 
+func (p *parser) emit() {
+	s := fmt.Sprintf("%s", string(p.b[len(p.b)-1]))
+	fmt.Println(s)
+}
+
 // TODO figure out how to handle the return state in the parser
 // certain states also use a temporary buffer to track progress, and the character
 // reference state uses a return state to return to the state it was invoked from.
@@ -189,11 +200,16 @@ func (p *parser) setReturnState(s state) {
 }
 
 func (p *parser) parse() {
-	var currToken rune
 	for {
 		token := p.lex.Scan()
 		if token == scanner.EOF {
 			break
+		}
+		fmt.Println("token", p.lex.TokenText())
+
+		switch token {
+		case scanner.Ident:
+			println("ident", p.lex.TokenText())
 		}
 
 		switch p.state {
@@ -210,6 +226,7 @@ func (p *parser) parse() {
 				// TODO emit the current input character as a character token
 			}
 		case tagOpen:
+			println("in tagOpen", string(token))
 			switch token {
 			case '!':
 				p.state = markupDeclarationOpen
@@ -233,30 +250,30 @@ func (p *parser) parse() {
 				p.state = data
 			default:
 				// anything else append the current input character to the current tag token's tag name
-				if p.reconsume {
-					p.append(currToken)
-					p.reconsume = false
-				}
-				p.append(token)
 			}
 		case markupDeclarationOpen:
 			// match for the word "DOCTYPE"
 			switch p.lex.TokenText() {
 			case "DOCTYPE":
+				println("in markupDeclarationOpen", p.lex.TokenText())
 				p.state = DOCTYPE
 			}
 		case DOCTYPE:
+			println("in DOCTYPE", token)
 			switch token {
 			case ' ':
 				p.state = afterDOCTYPEName
 			case '>':
 				// reconsume in the before DOCTYPE name state
 			}
+			continue
 		case beforeDOCTYPEName:
 			// create a new DOCTYPE token. set the token's name to the current input character. switch to the DOCTYPE name state
 			p.create(token)
 			p.state = DOCTYPEName
 		case afterDOCTYPEName:
+			println("in afterDOCTYPEName", string(token))
+			p.lex.Scan()
 			switch token {
 			case ' ':
 				// ignore the character
@@ -268,6 +285,8 @@ func (p *parser) parse() {
 				p.state = bogusDOCTYPE
 			}
 		case bogusDOCTYPE:
+			println("in bogusDOCTYPE", string(token))
+			// consume the next input character)
 			switch token {
 			case '>':
 				// switch to the data state. emit the DOCTYPE token
@@ -276,7 +295,7 @@ func (p *parser) parse() {
 				// TODO emit an end-of-file token
 			default:
 				// anything else ignore the character
-				p.lex.Scan()
+				// p.lex.Scan()
 			}
 		case DOCTYPEName:
 			switch token {
@@ -287,11 +306,10 @@ func (p *parser) parse() {
 				p.state = data
 			default:
 				// anything else append the current input character to the current tag token's tag name
-				p.append(token)
 			}
 		}
 		// save the current token for the next iteration
-		currToken = token
+		// TODO
 	}
 }
 
