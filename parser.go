@@ -202,7 +202,7 @@ func (p *parser) parse() {
 			case ' ':
 				p.state = beforeDOCTYPEName
 			case '>':
-				// TODO reconsume in beforeDoctypeName state
+				// TODO reconsume in beforeDOCTYPEName state
 				p.state = beforeDOCTYPEName
 			}
 		}
