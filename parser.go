@@ -204,6 +204,9 @@ func (p *parser) parse() {
 			switch token {
 			case ' ':
 				p.state = beforeDOCTYPEName
+			case '>':
+				// reconsume in beforeDoctypeName state
+				p.state = beforeDOCTYPEName
 			}
 		}
 	}
