@@ -1,15 +1,8 @@
+// package parser implements an HTML parser
+
 package parser
 
-import (
-	"container/list"
-	"fmt"
-	"io"
-	"text/scanner"
-	"unicode"
-)
-
-// WIP
-// TODO write a custom parser...
+import "bufio"
 
 type state int
 
@@ -95,7 +88,7 @@ const (
 
 type mode int
 
-// https://html.spec.whatwg.org/#insertion-mode
+// HTML insertion modes https://html.spec.whatwg.org/#insertion-mode
 const (
 	initial mode = iota
 	beforeHTML
@@ -122,199 +115,47 @@ const (
 	afterAfterFrameset
 )
 
-// https://html.spec.whatwg.org/#stack-of-open-elements
-type stack []elem
+const EOF = -1
 
-type elem struct {
-	val any
-}
-
-type lexer struct {
-	scanner.Scanner
+// scanner represents a lexical scanner
+type scanner struct {
+	r bufio.Reader
 }
 
 type parser struct {
-	tokList       list.List
-	b             []rune
-	s             *stack
-	lex           *lexer
-	state         state
-	returnState   *state
-	reconsume     bool
-	insertionMode mode
+	s     *scanner
+	state state
+	mode  mode
 }
 
-func (s stack) push(e elem) {
-	s = append(s, e)
-}
-
-func (s stack) pop() elem {
-	e := s[len(s)-1]
-	s = s[:len(s)-1]
-	return e
-}
-
-func newParser(r io.Reader) *parser {
-	p := parser{}
-	p.lex = &lexer{}
-	p.lex.Init(r)
-	p.lex.Whitespace ^= 1 << ' '
-	p.state = data // initial state
-	p.insertionMode = initial
-	p.tokList = *list.New()
-	p.b = []rune{}
-	p.s = &stack{}
-	return &p
-}
-
-// holds a DOCTYPE, start tag or end tag token
-type tokBuf struct {
-	name []rune
-}
-
-func (p *parser) create(token rune) {
-	tok := tokBuf{}
-	if token > '0' {
-		tok.name = append(tok.name, token)
+func (s *scanner) read() rune {
+	r, _, err := s.r.ReadRune()
+	if err != nil {
+		return EOF
 	}
-	p.tokList.PushBack(tok)
+	return r
 }
 
-func (p *parser) append(token rune) {
-	e := p.tokList.Back()
-	tok := p.tokList.Remove(e).(tokBuf)
-	tok.name = append(tok.name, token)
-	p.tokList.PushBack(tok)
+// newParser returns a new instance of parser
+func newParser(r bufio.Reader) *parser {
+	return &parser{s: &scanner{r: r}, state: data, mode: initial}
 }
 
-func (p *parser) emit() {
-	s := fmt.Sprintf("%s", string(p.b[len(p.b)-1]))
-	fmt.Println(s)
-}
-
-// TODO figure out how to handle the return state in the parser
-// certain states also use a temporary buffer to track progress, and the character
-// reference state uses a return state to return to the state it was invoked from.
-func (p *parser) setReturnState(s state) {
-	p.returnState = &s
-}
-
+// parse parses the input
 func (p *parser) parse() {
+	// ...
 	for {
-		token := p.lex.Scan()
-		if token == scanner.EOF {
+		token := p.s.read()
+		if r == EOF {
 			break
-		}
-		fmt.Println("token", p.lex.TokenText())
-
-		switch token {
-		case scanner.Ident:
-			println("ident", p.lex.TokenText())
 		}
 
 		switch p.state {
 		case data:
 			switch token {
-			case '&':
-				p.setReturnState(data)
-				p.state = characterReference
 			case '<':
 				p.state = tagOpen
-			case scanner.EOF:
-				// TODO emit an end-of-file token
-			default:
-				// TODO emit the current input character as a character token
-			}
-		case tagOpen:
-			println("in tagOpen", string(token))
-			switch token {
-			case '!':
-				p.state = markupDeclarationOpen
-			case '/':
-				p.state = endTagOpen
-			}
-			// create a new start tag token, set its tag name to the empty string. reconsume in the tag name state
-			if unicode.IsLetter(token) {
-				p.create('0')
-				p.reconsume = true
-				p.state = tagName
-			}
-		case tagName:
-			switch token {
-			case ' ':
-				p.state = beforeAttributeName
-			case '/':
-				// TODO switch to the self-closing start tag state
-			case '>':
-				// TODO emit the current tag token
-				p.state = data
-			default:
-				// anything else append the current input character to the current tag token's tag name
-			}
-		case markupDeclarationOpen:
-			// match for the word "DOCTYPE"
-			switch p.lex.TokenText() {
-			case "DOCTYPE":
-				println("in markupDeclarationOpen", p.lex.TokenText())
-				p.state = DOCTYPE
-			}
-		case DOCTYPE:
-			println("in DOCTYPE", token)
-			switch token {
-			case ' ':
-				p.state = afterDOCTYPEName
-			case '>':
-				// reconsume in the before DOCTYPE name state
-			}
-			continue
-		case beforeDOCTYPEName:
-			// create a new DOCTYPE token. set the token's name to the current input character. switch to the DOCTYPE name state
-			p.create(token)
-			p.state = DOCTYPEName
-		case afterDOCTYPEName:
-			println("in afterDOCTYPEName", string(token))
-			p.lex.Scan()
-			switch token {
-			case ' ':
-				// ignore the character
-			case scanner.EOF:
-				// TODO emit an end-of-file token
-			default:
-				// anything else switch to the bogus DOCTYPE state and reconsume
-				p.reconsume = true
-				p.state = bogusDOCTYPE
-			}
-		case bogusDOCTYPE:
-			println("in bogusDOCTYPE", string(token))
-			// consume the next input character)
-			switch token {
-			case '>':
-				// switch to the data state. emit the DOCTYPE token
-				p.state = data
-			case scanner.EOF:
-				// TODO emit an end-of-file token
-			default:
-				// anything else ignore the character
-				// p.lex.Scan()
-			}
-		case DOCTYPEName:
-			switch token {
-			case ' ':
-				p.state = afterDOCTYPEName
-			case '>':
-				// emit the current DOCTYPE token. switch to the data state
-				p.state = data
-			default:
-				// anything else append the current input character to the current tag token's tag name
 			}
 		}
-		// save the current token for the next iteration
-		// TODO
 	}
 }
-
-// var simple = `
-// <!DOCTYPE html>
-//   <html>
-//   </html>
-// `
