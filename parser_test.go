@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"bufio"
 	"strings"
 	"testing"
 )
@@ -12,6 +13,7 @@ var simple = `
 `
 
 func TestParser(t *testing.T) {
-	p := newParser(strings.NewReader(simple))
+	b := bufio.NewReader(strings.NewReader(simple))
+	p := newParser(*b)
 	p.parse()
 }
