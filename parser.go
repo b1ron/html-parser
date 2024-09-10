@@ -122,7 +122,7 @@ const EOF = -1
 
 // scanner represents a lexical scanner
 type scanner struct {
-	r bufio.Reader
+	r *bufio.Reader
 }
 
 type parser struct {
@@ -141,7 +141,7 @@ func (s *scanner) read() rune {
 
 // newParser returns a new instance of parser
 func newParser(r io.Reader) *parser {
-	return &parser{s: &scanner{r: *bufio.NewReader(r)}, state: data, mode: initial}
+	return &parser{s: &scanner{r: bufio.NewReader(r)}, state: data, mode: initial}
 }
 
 // parse parses the input
