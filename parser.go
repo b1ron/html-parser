@@ -2,7 +2,10 @@
 
 package parser
 
-import "bufio"
+import (
+	"bufio"
+	"io"
+)
 
 type state int
 
@@ -137,8 +140,8 @@ func (s *scanner) read() rune {
 }
 
 // newParser returns a new instance of parser
-func newParser(r bufio.Reader) *parser {
-	return &parser{s: &scanner{r: r}, state: data, mode: initial}
+func newParser(r io.Reader) *parser {
+	return &parser{s: &scanner{r: *bufio.NewReader(r)}, state: data, mode: initial}
 }
 
 // parse parses the input
@@ -146,7 +149,7 @@ func (p *parser) parse() {
 	// ...
 	for {
 		token := p.s.read()
-		if r == EOF {
+		if token == EOF {
 			break
 		}
 
