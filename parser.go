@@ -205,6 +205,9 @@ func (p *parser) parse() {
 				// TODO reconsume in beforeDOCTYPEName state
 				p.state = beforeDOCTYPEName
 			}
+		case beforeDOCTYPEName:
+			switch token {
+			}
 		}
 	}
 }
