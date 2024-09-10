@@ -139,6 +139,34 @@ func (s *scanner) read() rune {
 	return r
 }
 
+func (s *scanner) unread() { _ = s.r.UnreadRune() }
+
+func (s *scanner) scan() (tok rune) {
+	tok = s.read()
+	return
+}
+
+// scanIdent consumes the current rune and all contiguous ident runes
+func (s *scanner) scanIdent() (lit string) {
+	for {
+		ch := s.read()
+		if ch == EOF {
+			break
+		}
+		if isTag(ch) {
+			s.unread()
+			break
+		}
+		lit += string(ch)
+	}
+	return
+}
+
+// isTag returns true if the character is a tag or reserved character that should be unread
+func isTag(ch rune) bool {
+	return ch == '<' || ch == '>' || ch == '/' || ch == '&' || ch == '!' || ch == ' '
+}
+
 // newParser returns a new instance of parser
 func newParser(r io.Reader) *parser {
 	return &parser{s: &scanner{r: bufio.NewReader(r)}, state: data, mode: initial}
@@ -148,7 +176,7 @@ func newParser(r io.Reader) *parser {
 func (p *parser) parse() {
 	// ...
 	for {
-		token := p.s.read()
+		token := p.s.scan()
 		if token == EOF {
 			break
 		}
@@ -158,6 +186,24 @@ func (p *parser) parse() {
 			switch token {
 			case '<':
 				p.state = tagOpen
+			}
+		case tagOpen:
+			switch token {
+			case '!':
+				p.state = markupDeclarationOpen
+			case '/':
+				p.state = endTagOpen
+			}
+		case markupDeclarationOpen:
+			p.s.unread()
+			switch p.s.scanIdent() {
+			case "DOCTYPE":
+				p.state = DOCTYPE
+			}
+		case DOCTYPE:
+			switch token {
+			case ' ':
+				p.state = beforeDOCTYPEName
 			}
 		}
 	}
