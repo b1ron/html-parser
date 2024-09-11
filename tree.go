@@ -17,3 +17,15 @@ type element struct {
 	tagName string
 	attrs   map[string]string
 }
+
+func (e *element) String() string {
+	return e.tagName
+}
+
+func (e *element) appendToken(c rune) {
+	e.tagName += string(c)
+}
+
+func (e *element) appendString(s string) {
+	e.tagName += s
+}

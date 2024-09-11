@@ -1,4 +1,4 @@
-// package parser implements an HTML parser
+// package parser implements an HTML parser and state machine
 
 package parser
 
@@ -170,8 +170,9 @@ func newParser(r io.Reader) *parser {
 }
 
 // parse parses the input
-func (p *parser) parse() {
+func (p *parser) parse() *document {
 	// ...
+	d := &document{}
 	for {
 		token := p.s.scan()
 		if token == EOF {
@@ -207,7 +208,23 @@ func (p *parser) parse() {
 			}
 		case beforeDOCTYPEName:
 			switch token {
+			case ' ':
+				// ignore
 			}
+			p.s.unread()
+			d.root = &node{element: &element{}}
+			d.root.element.appendToken(token)
+			d.root.parent = nil
+			p.state = DOCTYPEName
+		case DOCTYPEName:
+			switch token {
+			case ' ':
+				p.state = afterDOCTYPEName
+			case '>':
+				p.state = data
+			}
+			d.root.element.appendString(p.s.scanIdent())
 		}
 	}
+	return d
 }
