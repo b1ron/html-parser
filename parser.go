@@ -170,9 +170,9 @@ func newParser(r io.Reader) *parser {
 }
 
 // parse parses the input
-func (p *parser) parse() *document {
+func (p *parser) parse() *tree {
 	// ...
-	d := &document{}
+	d := &tree{}
 	for {
 		token := p.s.scan()
 		if token == EOF {
@@ -210,11 +210,9 @@ func (p *parser) parse() *document {
 			switch token {
 			case ' ':
 				// ignore
+				continue
 			}
 			p.s.unread()
-			d.root = &node{element: &element{}}
-			d.root.element.appendToken(token)
-			d.root.parent = nil
 			p.state = DOCTYPEName
 		case DOCTYPEName:
 			switch token {
@@ -223,7 +221,7 @@ func (p *parser) parse() *document {
 			case '>':
 				p.state = data
 			}
-			d.root.element.appendString(p.s.scanIdent())
+			// append the current input character to the current DOCTYPE token's name
 		}
 	}
 	return d

@@ -1,7 +1,7 @@
 package parser
 
-// document represents an HTML document's DOM tree
-type document struct {
+// tree represents an HTML document's DOM tree
+type tree struct {
 	root *node
 }
 
@@ -16,16 +16,4 @@ type node struct {
 type element struct {
 	tagName string
 	attrs   map[string]string
-}
-
-func (e *element) String() string {
-	return e.tagName
-}
-
-func (e *element) appendToken(c rune) {
-	e.tagName += string(c)
-}
-
-func (e *element) appendString(s string) {
-	e.tagName += s
 }
