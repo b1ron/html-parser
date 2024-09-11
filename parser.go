@@ -150,7 +150,7 @@ func (s *scanner) scanIdent() (lit string) {
 		if ch == EOF {
 			break
 		}
-		if isTag(ch) {
+		if isDelim(ch) {
 			s.unread()
 			break
 		}
@@ -159,8 +159,8 @@ func (s *scanner) scanIdent() (lit string) {
 	return
 }
 
-// isTag returns true if the character is a tag or reserved character that should be unread
-func isTag(ch rune) bool {
+// isDelim returns true for tokens corresponding to state transitions or parsing actions
+func isDelim(ch rune) bool {
 	return ch == '<' || ch == '>' || ch == '/' || ch == '&' || ch == '!' || ch == ' '
 }
 
