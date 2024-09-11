@@ -125,6 +125,10 @@ type tree struct {
 	root *ListNode
 }
 
+func (t *tree) newList() *ListNode {
+	return &ListNode{tr: t, NodeType: nodeList}
+}
+
 // scanner represents a lexical scanner
 type scanner struct {
 	r *bufio.Reader

@@ -25,10 +25,6 @@ type ListNode struct {
 	tr       *tree
 }
 
-func (t *tree) newList() *ListNode {
-	return &ListNode{tr: t, NodeType: nodeList}
-}
-
 func (l *ListNode) append(n Node) {
 	l.children = append(l.children, n)
 }
