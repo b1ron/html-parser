@@ -7,6 +7,11 @@ import (
 	"io"
 )
 
+// tree represents an HTML document's DOM tree
+type tree struct {
+	root *ListNode
+}
+
 type state int
 
 // HTML states https://html.spec.whatwg.org/#data-state
@@ -172,7 +177,6 @@ func newParser(r io.Reader) *parser {
 // parse parses the input
 func (p *parser) parse() *tree {
 	// ...
-	t := &tree{}
 	for {
 		token := p.s.scan()
 		if token == EOF {
@@ -224,5 +228,5 @@ func (p *parser) parse() *tree {
 			// append the current input character to the current DOCTYPE token's name
 		}
 	}
-	return t
+	return nil
 }
