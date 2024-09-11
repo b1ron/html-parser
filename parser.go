@@ -7,11 +7,6 @@ import (
 	"io"
 )
 
-// tree represents an HTML document's DOM tree
-type tree struct {
-	root *ListNode
-}
-
 type state int
 
 // HTML states https://html.spec.whatwg.org/#data-state
@@ -125,6 +120,11 @@ const (
 
 const EOF = -1
 
+// tree represents an HTML document's DOM tree
+type tree struct {
+	root *ListNode
+}
+
 // scanner represents a lexical scanner
 type scanner struct {
 	r *bufio.Reader
@@ -177,6 +177,8 @@ func newParser(r io.Reader) *parser {
 // parse parses the input
 func (p *parser) parse() *tree {
 	// ...
+	t := &tree{}
+	t.root = t.newList()
 	for {
 		token := p.s.scan()
 		if token == EOF {
@@ -218,6 +220,8 @@ func (p *parser) parse() *tree {
 			}
 			p.s.unread()
 			p.state = DOCTYPEName
+
+			t.root.append(&documentNode{docType: p.s.scanIdent()})
 		case DOCTYPEName:
 			switch token {
 			case ' ':
