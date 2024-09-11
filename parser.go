@@ -172,7 +172,7 @@ func newParser(r io.Reader) *parser {
 // parse parses the input
 func (p *parser) parse() *tree {
 	// ...
-	d := &tree{}
+	t := &tree{}
 	for {
 		token := p.s.scan()
 		if token == EOF {
@@ -224,5 +224,5 @@ func (p *parser) parse() *tree {
 			// append the current input character to the current DOCTYPE token's name
 		}
 	}
-	return d
+	return t
 }
