@@ -224,17 +224,20 @@ func (p *parser) parse() *tree {
 			}
 			p.s.unread()
 			p.state = DOCTYPEName
-
-			t.root.append(&documentNode{docType: p.s.scanIdent()})
 		case DOCTYPEName:
 			switch token {
 			case ' ':
 				p.state = afterDOCTYPEName
 			case '>':
 				p.state = data
+				continue
 			}
-			// append the current input character to the current DOCTYPE token's name
+			t.root.append(&documentNode{docType: p.s.scanIdent()})
 		}
+	}
+	for _, child := range t.root.children {
+		// ...
+		println(child.Type())
 	}
 	return nil
 }
