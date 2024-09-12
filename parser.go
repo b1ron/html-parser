@@ -128,7 +128,8 @@ type tree struct {
 
 // scanner represents a lexical scanner
 type scanner struct {
-	r *bufio.Reader
+	r         *bufio.Reader
+	reconsume bool
 }
 
 type parser struct {
@@ -151,6 +152,7 @@ func (s *scanner) scan() (tok rune) { return s.read() }
 
 // scanIdent consumes the current rune and all contiguous ident runes
 func (s *scanner) scanIdent() (lit string) {
+	s.unread()
 	for {
 		ch := s.read()
 		if ch == EOF {
@@ -200,7 +202,6 @@ func (p *parser) parse() *tree {
 				p.state = endTagOpen
 			}
 		case markupDeclarationOpen:
-			p.s.unread()
 			switch p.s.scanIdent() {
 			case "DOCTYPE":
 				p.state = DOCTYPE
@@ -219,7 +220,6 @@ func (p *parser) parse() *tree {
 				continue
 			}
 			// fallthrough to DOCTYPEName state and reconsume the current token
-			p.s.unread()
 			p.state = DOCTYPEName
 			fallthrough
 		case DOCTYPEName:
