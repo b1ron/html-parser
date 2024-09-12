@@ -35,7 +35,7 @@ func (l *listNode) append(n Node) {
 	l.nextChild = &n
 }
 
-func (l *listNode) next() Node {
+func (l *listNode) Next() Node {
 	return *l.nextChild
 }
 

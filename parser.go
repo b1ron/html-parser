@@ -210,7 +210,6 @@ func (p *parser) parse() *tree {
 			case ' ':
 				p.state = beforeDOCTYPEName
 			case '>':
-				// TODO reconsume in beforeDOCTYPEName state
 				p.state = beforeDOCTYPEName
 			}
 		case beforeDOCTYPEName:
@@ -219,8 +218,10 @@ func (p *parser) parse() *tree {
 				// ignore
 				continue
 			}
+			// fallthrough to DOCTYPEName state and reconsume the current token
 			p.s.unread()
 			p.state = DOCTYPEName
+			fallthrough
 		case DOCTYPEName:
 			switch token {
 			case ' ':
@@ -229,10 +230,9 @@ func (p *parser) parse() *tree {
 				p.state = data
 				continue
 			}
-			p.s.unread()
 			t.root.append(&elementNode{data: p.s.scanIdent()})
 		}
 	}
-	fmt.Println(t.root.next().Data())
+	fmt.Println(t.root.Next().Data())
 	return nil
 }
