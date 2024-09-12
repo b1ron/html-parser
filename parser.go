@@ -4,6 +4,7 @@ package parser
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 )
 
@@ -122,11 +123,7 @@ const EOF = -1
 
 // tree represents an HTML document's DOM tree
 type tree struct {
-	root *ListNode
-}
-
-func (t *tree) newList() *ListNode {
-	return &ListNode{tr: t, NodeType: nodeList}
+	root *listNode
 }
 
 // scanner represents a lexical scanner
@@ -232,12 +229,10 @@ func (p *parser) parse() *tree {
 				p.state = data
 				continue
 			}
-			t.root.append(&documentNode{docType: p.s.scanIdent()})
+			p.s.unread()
+			t.root.append(&elementNode{data: p.s.scanIdent()})
 		}
 	}
-	for _, child := range t.root.children {
-		// ...
-		println(child.Type())
-	}
+	fmt.Println(t.root.next().Data())
 	return nil
 }
