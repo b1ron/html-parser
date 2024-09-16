@@ -48,3 +48,7 @@ type elementNode struct {
 func (e *elementNode) Data() string {
 	return e.data
 }
+
+func (e *elementNode) Attr() map[string]string {
+	return e.attr
+}

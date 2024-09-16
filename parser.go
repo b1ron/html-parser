@@ -4,7 +4,7 @@ package parser
 
 import (
 	"bufio"
-	"fmt"
+	"bytes"
 	"io"
 )
 
@@ -128,15 +128,20 @@ type tree struct {
 
 // scanner represents a lexical scanner
 type scanner struct {
-	r         *bufio.Reader
-	reconsume bool
+	r *bufio.Reader
 }
 
 type parser struct {
 	s     *scanner
+	b     *bytes.Buffer
 	state state
 	mode  mode
 }
+
+// consume appends the current rune to the buffer
+func (p *parser) consume(r rune) { p.b.WriteRune(r) }
+
+func (p *parser) reset() { p.b.Reset() }
 
 func (s *scanner) read() rune {
 	r, _, err := s.r.ReadRune()
@@ -174,7 +179,7 @@ func isDelim(ch rune) bool {
 
 // newParser returns a new instance of parser
 func newParser(r io.Reader) *parser {
-	return &parser{s: &scanner{r: bufio.NewReader(r)}, state: data, mode: initial}
+	return &parser{s: &scanner{r: bufio.NewReader(r)}, b: &bytes.Buffer{}, state: data, mode: initial}
 }
 
 // parse parses the input
@@ -200,6 +205,19 @@ func (p *parser) parse() *tree {
 				p.state = markupDeclarationOpen
 			case '/':
 				p.state = endTagOpen
+			}
+		case tagName:
+			switch token {
+			case ' ':
+				p.state = beforeAttributeName
+			case '/':
+				p.state = selfClosingStartTag
+			case '>':
+				t.root.append(&elementNode{data: p.b.String()})
+				p.reset()
+				p.state = data
+			default:
+				p.consume(token)
 			}
 		case markupDeclarationOpen:
 			switch p.s.scanIdent() {
@@ -233,6 +251,5 @@ func (p *parser) parse() *tree {
 			t.root.append(&elementNode{data: p.s.scanIdent()})
 		}
 	}
-	fmt.Println(t.root.Next().Data())
 	return nil
 }
