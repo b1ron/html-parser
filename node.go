@@ -54,6 +54,10 @@ func (d *documentElement) Data() string {
 	return d.data
 }
 
+func (e *documentElement) Type() nodeType {
+	return nodeDocument
+}
+
 type elementNode struct {
 	nodeType
 	data string
