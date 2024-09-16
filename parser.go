@@ -251,8 +251,12 @@ func (p *parser) parse() *tree {
 				p.state = data
 				continue
 			}
-			t.root.append(&elementNode{data: p.s.scanIdent()})
+			t.root.append(&documentElement{data: p.s.scanIdent()})
 		}
+	}
+
+	for _, n := range t.root.children {
+		println(n.Data(), n.Type())
 	}
 	return nil
 }

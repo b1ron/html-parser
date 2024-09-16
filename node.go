@@ -24,19 +24,34 @@ type listNode struct {
 	nodeType
 	children  []Node
 	nextChild *Node
+	pos       int
 }
 
 func (t *tree) newList() *listNode {
-	return &listNode{nodeType: nodeList}
+	return &listNode{nodeType: nodeList, pos: 0}
 }
 
 func (l *listNode) append(n Node) {
 	l.children = append(l.children, n)
 	l.nextChild = &n
+	l.pos++
 }
 
 func (l *listNode) Next() Node {
 	return *l.nextChild
+}
+
+func (l *listNode) lastChild() Node {
+	return l.children[l.pos-1]
+}
+
+type documentElement struct {
+	nodeType
+	data string
+}
+
+func (d *documentElement) Data() string {
+	return d.data
 }
 
 type elementNode struct {
@@ -47,6 +62,10 @@ type elementNode struct {
 
 func (e *elementNode) Data() string {
 	return e.data
+}
+
+func (e *elementNode) Type() nodeType {
+	return nodeElement
 }
 
 func (e *elementNode) Attr() map[string]string {
