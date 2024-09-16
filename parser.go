@@ -205,6 +205,9 @@ func (p *parser) parse() *tree {
 				p.state = markupDeclarationOpen
 			case '/':
 				p.state = endTagOpen
+			default:
+				p.s.unread()
+				p.state = tagName
 			}
 		case tagName:
 			switch token {
