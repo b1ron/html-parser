@@ -4,6 +4,7 @@ package parser
 type Node interface {
 	Type() nodeType
 	Data() string
+	String() string
 }
 
 type nodeType int
@@ -19,6 +20,14 @@ const (
 	nodeComment
 	nodeDocument
 )
+
+var nodeTypeMap = map[nodeType]string{
+	nodeList:     "list",
+	nodeText:     "text",
+	nodeElement:  "element",
+	nodeComment:  "comment",
+	nodeDocument: "document",
+}
 
 type listNode struct {
 	nodeType
@@ -45,17 +54,21 @@ func (l *listNode) lastChild() Node {
 	return l.children[l.pos-1]
 }
 
-type documentElement struct {
+type documentNode struct {
 	nodeType
 	data string
 }
 
-func (d *documentElement) Data() string {
+func (d *documentNode) Data() string {
 	return d.data
 }
 
-func (e *documentElement) Type() nodeType {
+func (d *documentNode) Type() nodeType {
 	return nodeDocument
+}
+
+func (d *documentNode) String() string {
+	return nodeTypeMap[d.Type()]
 }
 
 type elementNode struct {
@@ -74,4 +87,8 @@ func (e *elementNode) Type() nodeType {
 
 func (e *elementNode) Attr() map[string]string {
 	return e.attr
+}
+
+func (e *elementNode) String() string {
+	return nodeTypeMap[e.Type()]
 }

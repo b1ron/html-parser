@@ -13,5 +13,8 @@ var simple = `
 
 func TestParser(t *testing.T) {
 	p := newParser(strings.NewReader(simple))
-	p.parse()
+	tr := p.parse()
+	for _, n := range tr.root.children {
+		t.Logf("node type: %s, node data: %s", n.String(), n.Data())
+	}
 }
