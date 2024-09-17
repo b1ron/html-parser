@@ -55,7 +55,6 @@ func (l *listNode) lastChild() Node {
 }
 
 type documentNode struct {
-	nodeType
 	data string
 }
 
@@ -72,7 +71,6 @@ func (d *documentNode) String() string {
 }
 
 type elementNode struct {
-	nodeType
 	data string
 	attr map[string]string
 }
