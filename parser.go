@@ -206,6 +206,7 @@ func (p *parser) parse() *tree {
 			case '/':
 				p.state = endTagOpen
 			default:
+				// unread to reconsume the current token in the tagName state
 				p.s.unread()
 				p.state = tagName
 			}
@@ -240,7 +241,8 @@ func (p *parser) parse() *tree {
 				// ignore
 				continue
 			}
-			// fallthrough to DOCTYPEName state and reconsume the current token
+			// fallthrough to DOCTYPEName state and reconsume the current token, or
+			// in this case scan the DOCTYPEName's ident
 			p.state = DOCTYPEName
 			fallthrough
 		case DOCTYPEName:
