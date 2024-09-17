@@ -163,7 +163,7 @@ func (s *scanner) scanIdent() (lit string) {
 		if ch == EOF {
 			break
 		}
-		if isDelim(ch) {
+		if isState(ch) {
 			s.unread()
 			break
 		}
@@ -172,8 +172,8 @@ func (s *scanner) scanIdent() (lit string) {
 	return
 }
 
-// isDelim returns true for tokens corresponding to state transitions or parsing actions
-func isDelim(ch rune) bool {
+// isState returns true for tokens corresponding to state transitions or parsing actions
+func isState(ch rune) bool {
 	return ch == '<' || ch == '>' || ch == '/' || ch == '&' || ch == '!' || ch == ' '
 }
 
