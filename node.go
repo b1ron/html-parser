@@ -77,3 +77,5 @@ func (e *elementNode) Type() string {
 func (e *elementNode) Attr() map[string]string {
 	return e.attr
 }
+
+// TODO implement textNode and commentNode
