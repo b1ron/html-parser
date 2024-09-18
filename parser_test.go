@@ -15,8 +15,8 @@ var simple2 = `
 <!DOCTYPE html>
   <html>
     <head>
-	  <title>Test</title>
-	</head>
+     <title>Test</title>
+    </head>
 	<body>
 	  <h1>Test</h1>
 	</body>
@@ -27,7 +27,7 @@ var withAttributes = `
 <!DOCTYPE html>
   <html lang="en">
     <head>
-	  <title>Test</title>
+      <title>Test</title>
 	</head>
 	<body>
 	  <h1>Test</h1>
