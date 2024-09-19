@@ -7,45 +7,45 @@ import (
 
 var simple = `
 <!DOCTYPE html>
-  <html>
-  </html>
+<html>
+</html>
 `
 
 var simple2 = `
 <!DOCTYPE html>
-  <html>
-    <head>
-     <title>Test</title>
-    </head>
-	<body>
-	  <h1>Test</h1>
-	</body>
-  </html>
+<html>
+   <head>
+      <title>Test</title>
+   </head>
+   <body>
+      <h1>Test</h1>
+   </body>
+</html>
 `
 
 var withAttributes = `
 <!DOCTYPE html>
-  <html lang="en">
-    <head>
+<html lang="en">
+   <head>
       <title>Test</title>
-	</head>
-	<body>
-	  <h1>Test</h1>
-	</body>
-  </html>
+   </head>
+   <body>
+      <h1>Test</h1>
+   </body>
+</html>
 `
 
 var withLinks = `
 <!DOCTYPE html>
-  <html lang="en">
-    <head>
-	  <title>Test</title>
-	  <link rel="stylesheet" href="style.css">
-	</head>
-	<body>
-	  <h1>Test</h1>
-	</body>
-  </html>
+<html lang="en">
+   <head>
+      <title>Test</title>
+      <link rel="stylesheet" href="style.css">
+   </head>
+   <body>
+      <h1>Test</h1>
+   </body>
+</html>
 `
 
 func TestParser(t *testing.T) {
