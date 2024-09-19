@@ -2,27 +2,19 @@ package parser
 
 // Node is a trivial interface implemented by any node type in the DOM tree
 type Node interface {
-	Type() string
+	Type() nodeType
 	Data() string
 }
 
-type nodeType int
+type nodeType string
 
 const (
-	nodeList nodeType = iota
-	nodeText
-	nodeElement
-	nodeComment
-	nodeDocument
+	nodeList     nodeType = "list"
+	nodeText     nodeType = "text"
+	nodeElement  nodeType = "element"
+	nodeComment  nodeType = "comment"
+	nodeDocument nodeType = "document"
 )
-
-var nodeTypeMap = map[nodeType]string{
-	nodeList:     "list",
-	nodeText:     "text",
-	nodeElement:  "element",
-	nodeComment:  "comment",
-	nodeDocument: "document",
-}
 
 type listNode struct {
 	nodeType
@@ -57,8 +49,8 @@ func (d *documentNode) Data() string {
 	return d.data
 }
 
-func (d *documentNode) Type() string {
-	return nodeTypeMap[nodeDocument]
+func (d *documentNode) Type() nodeType {
+	return nodeDocument
 }
 
 type elementNode struct {
@@ -70,8 +62,8 @@ func (e *elementNode) Data() string {
 	return e.data
 }
 
-func (e *elementNode) Type() string {
-	return nodeTypeMap[nodeElement]
+func (e *elementNode) Type() nodeType {
+	return nodeElement
 }
 
 func (e *elementNode) Attr() map[string]string {
