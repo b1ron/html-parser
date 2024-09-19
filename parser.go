@@ -155,7 +155,7 @@ func (s *scanner) unread() { _ = s.r.UnreadRune() }
 
 func (s *scanner) scan() (tok rune) { return s.read() }
 
-// scanIdent consumes the current rune and all contiguous ident runes
+// scanIdent reconsumes the current rune consumes and all contiguous ident runes
 func (s *scanner) scanIdent() (lit string) {
 	s.unread()
 	for {
