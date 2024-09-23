@@ -64,7 +64,29 @@ func TestParser(t *testing.T) {
 			p := newParser(strings.NewReader(tt.in))
 			tr := p.parse()
 			for _, child := range tr.root.children {
-				if child.Type() == "elementN" {
+				if child.Type() == "element" {
+					t.Logf("Element: %s", child.Data())
+				}
+			}
+		})
+	}
+}
+
+func TestNext(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+	}{
+		{"simple2", simple2},
+	}
+	for _, tt := range tests {
+		want := []string{"html", "head", "title", "head", "body", "h1"}
+		t.Log(want)
+		t.Run(tt.name, func(t *testing.T) {
+			p := newParser(strings.NewReader(tt.in))
+			tr := p.parse()
+			for _, child := range tr.root.children {
+				if child.Type() == "element" {
 					t.Logf("Element: %s", child.Data())
 				}
 			}
