@@ -80,7 +80,7 @@ func TestNext(t *testing.T) {
 		{"simple2", simple2},
 	}
 	for _, tt := range tests {
-		want := []string{"html", "head", "title", "body", "h1"}
+		want := []string{"html", "head", "title", "body", "h1"} // FIXME node elements that close should be not be included
 		t.Log(want)
 		t.Run(tt.name, func(t *testing.T) {
 			p := newParser(strings.NewReader(tt.in))
