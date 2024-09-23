@@ -64,7 +64,7 @@ func TestParser(t *testing.T) {
 			p := newParser(strings.NewReader(tt.in))
 			tr := p.parse()
 			for _, child := range tr.root.children {
-				if child.Type() == "element" {
+				if child.Type() == "elementN" {
 					t.Logf("Element: %s", child.Data())
 				}
 			}

@@ -163,7 +163,7 @@ func (s *scanner) scanIdent() (lit string) {
 		if ch == EOF {
 			break
 		}
-		if isSwitch(ch) {
+		if isStateToken(ch) {
 			s.unread()
 			break
 		}
@@ -172,8 +172,8 @@ func (s *scanner) scanIdent() (lit string) {
 	return
 }
 
-// isSwitch returns true for tokens corresponding to state transitions or parsing actions
-func isSwitch(ch rune) bool {
+// isStateToken returns true for tokens corresponding to state transitions or parsing actions
+func isStateToken(ch rune) bool {
 	return ch == '<' || ch == '>' || ch == '/' || ch == '&' || ch == '!' || ch == ' '
 }
 
