@@ -1,6 +1,6 @@
 package parser
 
-// Node is a trivial interface implemented by any node type in the DOM tree
+// Node is a trivial interface implemented by any node type in the DOM tree.
 type Node interface {
 	Type() nodeType
 	Data() string

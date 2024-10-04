@@ -1,5 +1,4 @@
 // package parser implements an HTML parser and state machine
-
 package parser
 
 import (
